@@ -76,8 +76,7 @@ func (node *AggregateExpr) String() string {
 		aggrString += fmt.Sprintf("%s, ", node.Param)
 	}
 	aggrString += fmt.Sprintf("%s)", node.Expr)
-
-	return aggrString
+	return keepComments(aggrString,node.CommentsItems)
 }
 
 func (node *BinaryExpr) String() string {
@@ -104,11 +103,13 @@ func (node *BinaryExpr) String() string {
 			matching += fmt.Sprintf("(%s)", strings.Join(vm.Include, ", "))
 		}
 	}
-	return fmt.Sprintf("%s %s%s%s %s", node.LHS, node.Op, returnBool, matching, node.RHS)
+	aggrString:=fmt.Sprintf("%s %s%s%s %s", node.LHS, node.Op, returnBool, matching, node.RHS)
+	return keepComments(aggrString,node.CommentsItems)
 }
 
 func (node *Call) String() string {
-	return fmt.Sprintf("%s(%s)", node.Func.Name, node.Args)
+	aggrString:= fmt.Sprintf("%s(%s)", node.Func.Name, node.Args)
+	return keepComments(aggrString,node.CommentsItems)
 }
 
 func (node *MatrixSelector) String() string {
@@ -122,7 +123,8 @@ func (node *MatrixSelector) String() string {
 	// Do not print the offset twice.
 	vecSelector.Offset = 0
 
-	return fmt.Sprintf("%s[%s]%s", vecSelector.String(), model.Duration(node.Range), offset)
+	aggrString:= fmt.Sprintf("%s[%s]%s", vecSelector.String(), model.Duration(node.Range), offset)
+	return keepComments(aggrString,node.CommentsItems)
 }
 
 func (node *SubqueryExpr) String() string {
@@ -134,7 +136,8 @@ func (node *SubqueryExpr) String() string {
 	if node.Offset != time.Duration(0) {
 		offset = fmt.Sprintf(" offset %s", model.Duration(node.Offset))
 	}
-	return fmt.Sprintf("%s[%s:%s]%s", node.Expr.String(), model.Duration(node.Range), step, offset)
+	aggrString:= fmt.Sprintf("%s[%s:%s]%s", node.Expr.String(), model.Duration(node.Range), step, offset)
+	return keepComments(aggrString,node.CommentsItems)
 }
 
 func (node *NumberLiteral) String() string {
@@ -171,5 +174,26 @@ func (node *VectorSelector) String() string {
 		return fmt.Sprintf("%s%s", node.Name, offset)
 	}
 	sort.Strings(labelStrings)
-	return fmt.Sprintf("%s{%s}%s", node.Name, strings.Join(labelStrings, ","), offset)
+	aggrString:=fmt.Sprintf("%s{%s}%s", node.Name, strings.Join(labelStrings, ","), offset)
+	return keepComments(aggrString,node.CommentsItems)
+}
+
+func inMiddle(pos Pos)string{
+	if pos<=Pos(0){
+		return ""
+	}
+	return "\n"
+}
+
+func keepComments(expr string,c []Item)string{
+	for _,item:= range c{
+		expr=fmt.Sprintf("%s%s%s\n%s",
+							expr[:absPos(item.Pos-1)],
+							inMiddle(item.Pos),
+							item.Val,
+							expr[absPos(item.Pos-1):],
+						)
+	}
+
+	return strings.TrimFunc(expr,isSpace)
 }

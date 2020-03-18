@@ -216,6 +216,10 @@ type stateFn func(*Lexer) stateFn
 // Negative numbers indicate undefined positions.
 type Pos int
 
+func absPos(p Pos)Pos{
+	if p<0{return Pos(0)}
+	return p
+}
 // Lexer holds the state of the scanner.
 type Lexer struct {
 	input       string  // The string being scanned.
@@ -236,6 +240,7 @@ type Lexer struct {
 	// seriesDesc is set when a series description for the testing
 	// language is lexed.
 	seriesDesc bool
+	comments []Item
 }
 
 // next returns the next rune in the input.

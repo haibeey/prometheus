@@ -77,6 +77,7 @@ type Expr interface {
 	Type() ValueType
 	// expr ensures that no other types accidentally implement the interface.
 	expr()
+	Comments(item []Item)
 }
 
 // Expressions is a list of expression nodes that implements Node.
@@ -90,6 +91,7 @@ type AggregateExpr struct {
 	Grouping []string // The labels by which to group the Vector.
 	Without  bool     // Whether to drop the given labels rather than keep them.
 	PosRange PositionRange
+	CommentsItems []Item
 }
 
 // BinaryExpr represents a binary expression between two child expressions.
@@ -103,6 +105,7 @@ type BinaryExpr struct {
 
 	// If a comparison operator, return 0/1 rather than filtering.
 	ReturnBool bool
+	CommentsItems []Item
 }
 
 // Call represents a function call.
@@ -111,6 +114,7 @@ type Call struct {
 	Args Expressions // Arguments used in the call.
 
 	PosRange PositionRange
+	CommentsItems []Item
 }
 
 // MatrixSelector represents a Matrix selection.
@@ -121,6 +125,7 @@ type MatrixSelector struct {
 	Range          time.Duration
 
 	EndPos Pos
+	CommentsItems []Item
 }
 
 // SubqueryExpr represents a subquery.
@@ -131,6 +136,7 @@ type SubqueryExpr struct {
 	Step   time.Duration
 
 	EndPos Pos
+	CommentsItems []Item
 }
 
 // NumberLiteral represents a number.
@@ -138,6 +144,7 @@ type NumberLiteral struct {
 	Val float64
 
 	PosRange PositionRange
+	CommentsItems []Item
 }
 
 // ParenExpr wraps an expression so it cannot be disassembled as a consequence
@@ -145,12 +152,14 @@ type NumberLiteral struct {
 type ParenExpr struct {
 	Expr     Expr
 	PosRange PositionRange
+	CommentsItems []Item
 }
 
 // StringLiteral represents a string.
 type StringLiteral struct {
 	Val      string
 	PosRange PositionRange
+	CommentsItems []Item
 }
 
 // UnaryExpr represents a unary operation on another expression.
@@ -160,6 +169,7 @@ type UnaryExpr struct {
 	Expr Expr
 
 	StartPos Pos
+	CommentsItems []Item
 }
 
 // VectorSelector represents a Vector selection.
@@ -173,6 +183,7 @@ type VectorSelector struct {
 	Series              []storage.Series
 
 	PosRange PositionRange
+	CommentsItems []Item
 }
 
 // TestStmt is an internal helper statement that allows execution
@@ -214,6 +225,39 @@ func (*ParenExpr) expr()      {}
 func (*StringLiteral) expr()  {}
 func (*UnaryExpr) expr()      {}
 func (*VectorSelector) expr() {}
+
+
+func (e *AggregateExpr) Comments(item []Item)  {
+	e.CommentsItems=item
+}
+func (e *BinaryExpr) Comments(item []Item)    {
+	e.CommentsItems=item
+}
+func (e *Call) Comments(item []Item)          {
+	e.CommentsItems=item
+}
+func (e *MatrixSelector) Comments(item []Item) {
+	e.CommentsItems=item
+}
+func (e *SubqueryExpr) Comments(item []Item)   {
+	e.CommentsItems=item
+}
+func (e *NumberLiteral) Comments(item []Item)  {
+	e.CommentsItems=item
+}
+func (e *ParenExpr) Comments(item []Item)      {
+	e.CommentsItems=item
+}
+func (e *StringLiteral) Comments(item []Item)  {
+	e.CommentsItems=item
+}
+func (e *UnaryExpr) Comments(item []Item)      {
+	e.CommentsItems=item
+}
+func (e *VectorSelector) Comments(item []Item) {
+	e.CommentsItems=item
+}
+
 
 // VectorMatchCardinality describes the cardinality relationship
 // of two Vectors in a binary operation.

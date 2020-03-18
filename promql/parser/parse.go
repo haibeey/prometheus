@@ -104,6 +104,7 @@ func (errs ParseErrors) Error() string {
 
 // ParseExpr returns the expression parsed from the input.
 func ParseExpr(input string) (expr Expr, err error) {
+	input = sanitizeInput(input)
 	p := newParser(input)
 	defer parserPool.Put(p)
 	defer p.recover(&err)
@@ -122,12 +123,14 @@ func ParseExpr(input string) (expr Expr, err error) {
 	if len(p.parseErrors) != 0 {
 		err = p.parseErrors
 	}
-
+	expr.Comments(p.lex.comments)
+	
 	return expr, err
 }
 
 // ParseMetric parses the input into a metric
 func ParseMetric(input string) (m labels.Labels, err error) {
+	input = sanitizeInput(input)
 	p := newParser(input)
 	defer parserPool.Put(p)
 	defer p.recover(&err)
@@ -147,6 +150,7 @@ func ParseMetric(input string) (m labels.Labels, err error) {
 // ParseMetricSelector parses the provided textual metric selector into a list of
 // label matchers.
 func ParseMetricSelector(input string) (m []*labels.Matcher, err error) {
+	input = sanitizeInput(input)
 	p := newParser(input)
 	defer parserPool.Put(p)
 	defer p.recover(&err)
@@ -165,6 +169,7 @@ func ParseMetricSelector(input string) (m []*labels.Matcher, err error) {
 
 // newParser returns a new parser.
 func newParser(input string) *parser {
+	input = sanitizeInput(input)
 	p := parserPool.Get().(*parser)
 
 	p.injecting = false
@@ -198,6 +203,7 @@ type seriesDescription struct {
 
 // ParseSeriesDesc parses the description of a time series.
 func ParseSeriesDesc(input string) (labels labels.Labels, values []SequenceValue, err error) {
+	input = sanitizeInput(input)
 	p := newParser(input)
 	p.lex.seriesDesc = true
 
@@ -303,6 +309,7 @@ func (p *parser) Lex(lval *yySymType) int {
 			if typ != COMMENT {
 				break
 			}
+			p.lex.comments = append(p.lex.comments,*p.lex.itemp)
 		}
 	}
 
@@ -707,4 +714,10 @@ func (p *parser) addOffset(e Node, offset time.Duration) {
 
 	*endPosp = p.lastClosing
 
+}
+
+func sanitizeInput(input string)string {
+	// Tabs are would added after formatting
+	// for now remove all Tabs
+	return strings.ReplaceAll(input,"\t","");
 }
