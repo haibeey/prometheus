@@ -76,7 +76,12 @@ func (node *AggregateExpr) String() string {
 		aggrString += fmt.Sprintf("%s, ", node.Param)
 	}
 	aggrString += fmt.Sprintf("%s)", node.Expr)
-
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%s", node.Comment.Val,aggrString)
+		}
+		return fmt.Sprintf("%s\n%s", aggrString,node.Comment.Val)
+	}
 	return aggrString
 }
 
@@ -104,11 +109,23 @@ func (node *BinaryExpr) String() string {
 			matching += fmt.Sprintf("(%s)", strings.Join(vm.Include, ", "))
 		}
 	}
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%s %s%s%s %s", node.Comment.Val,node.LHS, node.Op, returnBool, matching, node.RHS)
+		}
+		return fmt.Sprintf("%s %s%s%s %s%s\n", node.LHS, node.Op, returnBool, matching, node.RHS,node.Comment.Val)
+	}
 	return fmt.Sprintf("%s %s%s%s %s", node.LHS, node.Op, returnBool, matching, node.RHS)
 }
 
 func (node *Call) String() string {
-	return fmt.Sprintf("%s(%s)", node.Func.Name, node.Args)
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%s(%s)",node.Comment.Val, node.Func.Name, node.Args)
+		}
+		return fmt.Sprintf("%s(%s)\n%s",node.Func.Name, node.Args,node.Comment.Val)
+	}
+	return fmt.Sprintf("%s(%s)",node.Func.Name, node.Args)
 }
 
 func (node *MatrixSelector) String() string {
@@ -121,7 +138,12 @@ func (node *MatrixSelector) String() string {
 
 	// Do not print the offset twice.
 	vecSelector.Offset = 0
-
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%s[%s]%s", node.Comment.Val,vecSelector.String(), model.Duration(node.Range), offset)
+		}
+		return fmt.Sprintf("%s[%s]%s\n%s", vecSelector.String(), model.Duration(node.Range), offset,node.Comment.Val)
+	}
 	return fmt.Sprintf("%s[%s]%s", vecSelector.String(), model.Duration(node.Range), offset)
 }
 
@@ -134,22 +156,52 @@ func (node *SubqueryExpr) String() string {
 	if node.Offset != time.Duration(0) {
 		offset = fmt.Sprintf(" offset %s", model.Duration(node.Offset))
 	}
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%s[%s:%s]%s", node.Comment.Val,node.Expr.String(), model.Duration(node.Range), step, offset)
+		}
+		return fmt.Sprintf("%s[%s:%s]%s\n%s", node.Expr.String(), model.Duration(node.Range), step, offset,node.Comment.Val)
+	}
 	return fmt.Sprintf("%s[%s:%s]%s", node.Expr.String(), model.Duration(node.Range), step, offset)
 }
 
 func (node *NumberLiteral) String() string {
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%f", node.Comment.Val,node.Val)
+		}
+		return fmt.Sprintf("%s\n%f", node.Comment.Val,node.Val)
+	}
 	return fmt.Sprint(node.Val)
 }
 
 func (node *ParenExpr) String() string {
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n(%s)", node.Comment.Val,node.Expr)
+		}
+		return fmt.Sprintf("(%s)\n%s",node.Expr,node.Comment.Val)
+	}
 	return fmt.Sprintf("(%s)", node.Expr)
 }
 
 func (node *StringLiteral) String() string {
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%q", node.Comment.Val,node.Val)
+		}
+		return fmt.Sprintf("%q\n%s",node.Val,node.Comment.Val)
+	}
 	return fmt.Sprintf("%q", node.Val)
 }
 
 func (node *UnaryExpr) String() string {
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%s%s", node.Comment.Val,node.Op,node.Expr)
+		}
+		return fmt.Sprintf("%s%s\n%s",node.Op,node.Expr,node.Comment.Val)
+	}
 	return fmt.Sprintf("%s%s", node.Op, node.Expr)
 }
 
@@ -171,5 +223,11 @@ func (node *VectorSelector) String() string {
 		return fmt.Sprintf("%s%s", node.Name, offset)
 	}
 	sort.Strings(labelStrings)
+	if len(node.Comment.Val) >0{
+		if node.beforeNode{
+			return fmt.Sprintf("%s\n%s{%s}%s", node.Comment.Val,node.Name, strings.Join(labelStrings, ","), offset)
+		}
+		return fmt.Sprintf("%s{%s}%s\n%s",node.Name, strings.Join(labelStrings, ","), offset,node.Comment.Val)
+	}
 	return fmt.Sprintf("%s{%s}%s", node.Name, strings.Join(labelStrings, ","), offset)
 }

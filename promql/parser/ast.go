@@ -43,6 +43,8 @@ type Node interface {
 
 	// PositionRange returns the position of the AST Node in the query string.
 	PositionRange() PositionRange
+	// AttachComment adds comment on Node.
+	AttachComment(Comment Item,beforeNode bool)
 }
 
 // Statement is a generic interface for all statements.
@@ -90,6 +92,9 @@ type AggregateExpr struct {
 	Grouping []string // The labels by which to group the Vector.
 	Without  bool     // Whether to drop the given labels rather than keep them.
 	PosRange PositionRange
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // BinaryExpr represents a binary expression between two child expressions.
@@ -103,6 +108,9 @@ type BinaryExpr struct {
 
 	// If a comparison operator, return 0/1 rather than filtering.
 	ReturnBool bool
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // Call represents a function call.
@@ -111,6 +119,9 @@ type Call struct {
 	Args Expressions // Arguments used in the call.
 
 	PosRange PositionRange
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // MatrixSelector represents a Matrix selection.
@@ -121,6 +132,9 @@ type MatrixSelector struct {
 	Range          time.Duration
 
 	EndPos Pos
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // SubqueryExpr represents a subquery.
@@ -131,6 +145,9 @@ type SubqueryExpr struct {
 	Step   time.Duration
 
 	EndPos Pos
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // NumberLiteral represents a number.
@@ -138,6 +155,9 @@ type NumberLiteral struct {
 	Val float64
 
 	PosRange PositionRange
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // ParenExpr wraps an expression so it cannot be disassembled as a consequence
@@ -145,12 +165,18 @@ type NumberLiteral struct {
 type ParenExpr struct {
 	Expr     Expr
 	PosRange PositionRange
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // StringLiteral represents a string.
 type StringLiteral struct {
 	Val      string
 	PosRange PositionRange
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // UnaryExpr represents a unary operation on another expression.
@@ -160,6 +186,9 @@ type UnaryExpr struct {
 	Expr Expr
 
 	StartPos Pos
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // VectorSelector represents a Vector selection.
@@ -173,6 +202,9 @@ type VectorSelector struct {
 	Series              []storage.Series
 
 	PosRange PositionRange
+	Comment Item
+	// If Comment should come before or after the expression
+	beforeNode bool
 }
 
 // TestStmt is an internal helper statement that allows execution
@@ -432,4 +464,60 @@ func (e *UnaryExpr) PositionRange() PositionRange {
 }
 func (e *VectorSelector) PositionRange() PositionRange {
 	return e.PosRange
+}
+
+// Methods implementing attachcomments for nodes
+
+func (i *Item) AttachComment(Comment Item,beforeNode bool)  {
+	
+}
+
+func (e *AggregateExpr) AttachComment(Comment Item,beforeNode bool) {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *BinaryExpr) AttachComment(Comment Item,beforeNode bool)  {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *Call) AttachComment(Comment Item,beforeNode bool) {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *EvalStmt) AttachComment(Comment Item,beforeNode bool) {
+
+}
+func (e Expressions) AttachComment(Comment Item,beforeNode bool){
+
+}
+func (e *MatrixSelector) AttachComment(Comment Item,beforeNode bool) {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *SubqueryExpr) AttachComment(Comment Item,beforeNode bool) {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *NumberLiteral) AttachComment(Comment Item,beforeNode bool)  {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *ParenExpr) AttachComment(Comment Item,beforeNode bool) {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *StringLiteral) AttachComment(Comment Item,beforeNode bool){
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *UnaryExpr) AttachComment(Comment Item,beforeNode bool) {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e *VectorSelector) AttachComment(Comment Item,beforeNode bool) {
+	e.Comment=Comment
+	e.beforeNode=beforeNode
+}
+func (e TestStmt) AttachComment(Comment Item,beforeNode bool){
+
 }

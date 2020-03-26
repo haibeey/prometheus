@@ -129,7 +129,7 @@ START_METRIC_SELECTOR
 %type <matchers> label_match_list
 %type <matcher> label_matcher
 
-%type <item> aggregate_op grouping_label match_op maybe_label metric_identifier unary_op
+%type <item> aggregate_op grouping_label match_op maybe_label metric_identifier unary_op comment_literal
 
 %type <labels> label_set label_set_list metric
 %type <label> label_set_item
@@ -165,6 +165,8 @@ start           :
                 | START_SERIES_DESCRIPTION series_description
                 | START_EXPRESSION /* empty */ EOF
                         { yylex.(*parser).addParseErrf(PositionRange{}, "no expression found in input")}
+                | START_EXPRESSION comment_literal EOF
+                        { yylex.(*parser).addParseErrf(PositionRange{}, "no expression found in input")}
                 | START_EXPRESSION expr
                         { yylex.(*parser).generatedParserResult = $2 }
                 | START_METRIC_SELECTOR vector_selector
@@ -186,6 +188,16 @@ expr            :
                 | subquery_expr
                 | unary_expr
                 | vector_selector
+                | comment_literal expr
+                {
+                        $2.AttachComment($1,true) 
+                        $$=$2
+                }
+                | expr comment_literal
+                {
+                        $1.AttachComment($2,false) 
+                        $$=$1
+                }
                 ;
 
 /*
@@ -522,6 +534,11 @@ label_matcher   : IDENTIFIER match_op STRING
                         { yylex.(*parser).unexpected("label matching", "label matching operator"); $$ = nil }
                 | error
                         { yylex.(*parser).unexpected("label matching", "identifier or \"}\""); $$ = nil}
+                | comment_literal label_matcher 
+                {
+                        $$=$2
+                        $$.Comment="\n"+$1.Val+"\n"
+                }
                 ;
 
 /*
@@ -692,6 +709,13 @@ string_literal  : STRING
                         }
                         }
                         ;
+
+comment_literal  : COMMENT
+                | COMMENT comment_literal
+                {       
+                        $$.Val= $1.Val+"\n"+$2.Val
+                }
+                ;
 
 /*
  * Wrappers for optional arguments.

@@ -89,6 +89,41 @@ func TestExprString(t *testing.T) {
 		{
 			in: `{__name__="a"}`,
 		},
+		{
+			in: `(
+				#comment
+				kube_job_status_failed > 0
+			)`,
+			out:"(#comment\nkube_job_status_failed > 0)",
+		},
+		{
+			in: `some_metric{
+				#comment
+				instance = "foo"
+			}`,
+			out:"some_metric{\n#comment\ninstance=\"foo\"}",
+		},
+		{
+			in: 
+			`#comment1
+			(
+				#comment2
+				kube_job_status_failed > 0
+				UNLESS kube_job_status_succeeded > 0
+			)
+			#comment3
+			#comment4
+			#comment5
+			* on (namespace, job_name) group_left(maintainer) label_replace(kube_job_labels, "maintainer", "$1", "label_maintainer", "(.*)")
+			* on (namespace, job_name) group_left(pager) label_replace(kube_job_labels, "pager", "$1", "label_pager", "(.*)")
+			#comment6
+			* 
+			on (namespace, job_name) group_left(paging) label_replace(kube_job_labels, "paging", "$1", "label_paging", "(.*)")
+			#comment7
+			`,
+			out: 
+			"#comment1\n(#comment2\nkube_job_status_failed > 0 unless kube_job_status_succeeded > 0)\n#comment3\n#comment4\n#comment5 * on(namespace, job_name) group_left(maintainer) label_replace(kube_job_labels, \"maintainer\", \"$1\", \"label_maintainer\", \"(.*)\") * on(namespace, job_name) group_left(pager) label_replace(kube_job_labels, \"pager\", \"$1\", \"label_pager\", \"(.*)\")\n#comment6 * on(namespace, job_name) group_left(paging) label_replace(kube_job_labels, \"paging\", \"$1\", \"label_paging\", \"(.*)\")\n#comment7",
+		},
 	}
 
 	for _, test := range inputs {

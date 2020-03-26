@@ -445,6 +445,10 @@ var testExpr = []struct {
 		fail:   true,
 		errMsg: "no expression found in input",
 	}, {
+		input:  "# just a comment\n#another",
+		fail:   true,
+		errMsg: "no expression found in input",
+	}, {
 		input:  "1+",
 		fail:   true,
 		errMsg: "unexpected end of input",

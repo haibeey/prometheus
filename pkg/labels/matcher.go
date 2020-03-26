@@ -47,6 +47,7 @@ type Matcher struct {
 	Type  MatchType
 	Name  string
 	Value string
+	Comment string
 
 	re *regexp.Regexp
 }
@@ -78,7 +79,7 @@ func MustNewMatcher(mt MatchType, name, val string) *Matcher {
 }
 
 func (m *Matcher) String() string {
-	return fmt.Sprintf("%s%s%q", m.Name, m.Type, m.Value)
+	return fmt.Sprintf("%s%s%s%q", m.Comment,m.Name, m.Type, m.Value)
 }
 
 // Matches returns whether the matcher matches the given string value.

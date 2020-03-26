@@ -282,7 +282,6 @@ func (p *parser) recover(errp *error) {
 
 // Lex is expected by the yyLexer interface of the yacc generated parser.
 // It writes the next Item provided by the lexer to the provided pointer address.
-// Comments are skipped.
 //
 // The yyLexer interface is currently implemented by the parser to allow
 // the generated and non-generated parts to work together with regards to lookahead
@@ -295,16 +294,9 @@ func (p *parser) Lex(lval *yySymType) int {
 	if p.injecting {
 		p.injecting = false
 		return int(p.inject)
-	} else {
-		// Skip comments.
-		for {
-			p.lex.NextItem(&lval.item)
-			typ = lval.item.Typ
-			if typ != COMMENT {
-				break
-			}
-		}
-	}
+	} 
+	p.lex.NextItem(&lval.item)
+	typ = lval.item.Typ
 
 	switch typ {
 	case ERROR:
@@ -359,7 +351,7 @@ func (p *parser) newBinaryExpression(lhs Node, op Item, modifiers Node, rhs Node
 	ret.LHS = lhs.(Expr)
 	ret.RHS = rhs.(Expr)
 	ret.Op = op.Typ
-
+	
 	return ret
 }
 
@@ -376,7 +368,7 @@ func (p *parser) assembleVectorSelector(vs *VectorSelector) {
 func (p *parser) newAggregateExpr(op Item, modifier Node, args Node) (ret *AggregateExpr) {
 	ret = modifier.(*AggregateExpr)
 	arguments := args.(Expressions)
-
+	
 	ret.PosRange = PositionRange{
 		Start: op.Pos,
 		End:   p.lastClosing,
